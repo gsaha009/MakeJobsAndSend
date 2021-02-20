@@ -1,0 +1,75 @@
+tree: Events
+era: 2016 
+lumi: 35922 
+appDir: /afs/cern.ch/work/g/gsaha/public/CMSSW_9_4_9/src
+jobDir: /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct/analysis_MVA
+commonInfo:
+  - readGenInfo 0
+  - dumpGenInfo 0
+  - readTrigObject 0
+  - readPFObject 1
+  - useLumiWt 1
+  - dumpEventMax 10
+  - logOption 0
+  - maxEvent -1
+  - nFiles -1
+mvaInfo:
+  - createMVATree 0
+  - readMVA 0
+  - MVAnetwork BDT_nT1500_D2_nC100_ns5
+  - MVAxmlFile /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct/Analysis_mva/input/TMVAClassification_BDT_nT1500_D2_nC100_ns5.weights.xml
+  - mvaInputFile ll4jmet_FTree.root
+cutLists:
+  - vtxCutList ndf=4 z=24 Rho=2
+  - muonCutList eta=2.4 pt=10. dxy=0.05 dz=0.1 SIP3D=4. pfReliso=0.15
+  - electronCutList pt=10. eta=2.5 dxyEB=0.05 dzEB=0.1 dxyEE=0.1 dzEE=0.2 SIP3D=4. pfReliso=0.20
+  - tauCutList eta=2.3 pt=20. dz=0.2 muVeto=0.5 eleVeto=0.5 isol=0.5
+  - jetCutList eta=2.5 pt=20. dRlep=0.4 btagFactor=0.8484
+  - fatJetCutList eta=2.4 pt=200. dRlep=0.4 btagFactor=0.8484
+  - photonCutList pt=2 eta=2.4 isol=1.8 dRmin=0.5 dRovEt2=0.012
+  - evselCutList hLepPtMin=20. ZMassLow=60. ZMassHigh=120.
+endInfo:
+  - useEventList 1
+  - eventId 1 895751 20
+samplesDict:
+  MC:
+    ### DY-Jets
+    DYJetsToLL_M-10to50:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v1/','/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v2/']
+      genEvtWtSum: 'genEventSumw'
+      xsec: 18610.0 #pb
+      split: 20
+
+    DYJetsToLL_M-50:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v1/']
+      genEvtWtSum: 'genEventSumw'
+      xsec: 6077.22 # pb
+      split: 20
+
+    ### ttbar
+    TTToSemiLeptonic: 
+      filedirs: ['/eos/user/p/ppalit3/Exotic/TTJetsSingleLept_Nano/']
+      genEvtWtSum: 'genEventSumw'
+      xsec: 365.52
+      split: 20
+
+  DATA:  
+    ### era B
+    SingleMuon_2016B:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleMuon2016/EraB/']
+      split: 20
+
+    DoubleMuon_2016B:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleMuon2016/EraB/']
+      split: 20
+
+    MuonEG_2016B:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleEG2016/EraB/']
+      split: 20
+
+  SIGNAL:
+    Signal_PPAP_v1:
+      filedirs: ['/eos/user/p/ppalit3/Exotic/SignalAP_BP1/']
+      xsec: 0.001929282841388
+      genEvtWtSum: 'genEventSumw'
+      split: 20
