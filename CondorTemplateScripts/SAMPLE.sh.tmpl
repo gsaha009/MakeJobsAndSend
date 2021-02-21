@@ -1,0 +1,11 @@
+#!/bin/bash
+#set -o nounset
+
+JOBDIR=NameOfJobDirGivenInYaml
+APPDIR=NameOfAppDirGivenInYaml
+cd $APPDIR
+eval $(scramv1 runtime -sh)
+cd $JOBDIR/condor_runlog_dir
+uname -a > ./sample_INDEX.runlog 2>&1
+ulimit -c 0
+$JOBDIR/analysis_mva/multileptonMVA.exe $JOBDIR/MakeJobsAndSend/JobCards_era/sample_condorDir/sample_index.job >> ./sample_index.runlog 2>&1

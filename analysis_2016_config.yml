@@ -2,7 +2,9 @@ tree: Events
 era: 2016 
 lumi: 35922 
 appDir: /afs/cern.ch/work/g/gsaha/public/CMSSW_9_4_9/src
-jobDir: /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct/analysis_MVA
+jobDir: /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct
+# Do not write the full path. Just keep the name as it is inside jobDir
+exeToRun: analysis_mva/multileptonMVA.exe
 commonInfo:
   - readGenInfo 0
   - dumpGenInfo 0
@@ -38,38 +40,39 @@ samplesDict:
       filedirs: ['/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v1/','/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v2/']
       genEvtWtSum: 'genEventSumw'
       xsec: 18610.0 #pb
-      split: 20
+      filesPerJob: 2
 
     DYJetsToLL_M-50:
       filedirs: ['/eos/user/p/ppalit3/Exotic/DYJets_MLM_all/DYJetsInc_v1/']
       genEvtWtSum: 'genEventSumw'
       xsec: 6077.22 # pb
-      split: 20
+      filesPerJob: 2
 
     ### ttbar
     TTToSemiLeptonic: 
       filedirs: ['/eos/user/p/ppalit3/Exotic/TTJetsSingleLept_Nano/']
       genEvtWtSum: 'genEventSumw'
       xsec: 365.52
-      split: 20
+      filesPerJob: 2
 
   DATA:  
     ### era B
     SingleMuon_2016B:
       filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleMuon2016/EraB/']
-      split: 20
+      filesPerJob: 2
 
     DoubleMuon_2016B:
       filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleMuon2016/EraB/']
-      split: 20
+      filesPerJob: 2
 
     MuonEG_2016B:
       filedirs: ['/eos/user/p/ppalit3/Exotic/DATA/DoubleEG2016/EraB/']
-      split: 20
+      filesPerJob: 2
 
   SIGNAL:
     Signal_PPAP_v1:
       filedirs: ['/eos/user/p/ppalit3/Exotic/SignalAP_BP1/']
       xsec: 0.001929282841388
       genEvtWtSum: 'genEventSumw'
-      split: 20
+      filesPerJob: 4
+
