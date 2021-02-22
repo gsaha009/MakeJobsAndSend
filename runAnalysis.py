@@ -1,5 +1,6 @@
+#################################################
 ### A script to make the job submissions easy ###
-###               Gouurab Saha                ###
+###                Gourab Saha                ###
 #################################################
 import os
 import yaml
@@ -33,7 +34,6 @@ def main():
         configDict = yaml.safe_load(config)
 
     keyList = [str(key) for key in configDict.keys()]
-    logging.info('Config yaml keys : {}'.format(keyList))
     
     era            = configDict.get('era')
     lumi           = configDict.get('lumi')
@@ -47,12 +47,11 @@ def main():
     logging.info('lumi : {} pb-1'.format(lumi))
     logging.info('tree : {}'.format(tree))
     
-    appdir         = configDict.get('appDir')
-    jobdir         = configDict.get('jobDir')
-    exeToRun       = configDict.get('exeToRun')
-    samplesDict    = configDict.get('samplesDict')
-    dataTypes      = [str(sample) for sample in samplesDict.keys()]
-    logging.info('dataTypes : {}'.format(dataTypes))
+    appdir            = configDict.get('appDir')
+    jobdir            = configDict.get('jobDir')
+    exeToRun          = configDict.get('exeToRun')
+    samplesDict       = configDict.get('samplesDict')
+    dataTypes         = [str(sample) for sample in samplesDict.keys()]
     mcSamplesDict     = samplesDict.get('MC')
     dataSamplesDict   = samplesDict.get('DATA')
     signalSamplesDict = samplesDict.get('SIGNAL')
@@ -64,7 +63,7 @@ def main():
     # mc samples
     logging.info('Start making job cards for MC Bkg samples ===>')
     for key, val in mcSamplesDict.items():
-        logging.info('... sample : {}'.format(key))
+        logging.info(' Sample : {}'.format(key))
         filePathList = val.get('filedirs')
         xsec         = val.get('xsec')
         evtWtSum     = val.get('genEvtWtSum')
@@ -153,7 +152,7 @@ def main():
             shutil.copy(tmplsubFile, subkey)
             shutil.copy(tmplshFile, shkey)
             # edit the sub.tmpl file
-            replaceAll(subkey, 'executable   = submit_sample_index.sh', 'executable   = '+shkey.split('/')[-1])
+            replaceAll(subkey, 'executable   = sample_index.sh', 'executable   = '+shkey.split('/')[-1])
             replaceAll(subkey, 'output       = output/sample_INDEX.$(ClusterId).$(ProcId).out', 'output       = output/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).out')
             replaceAll(subkey, 'error        = error/sample_INDEX.$(ClusterId).$(ProcId).err', 'error        = error/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).err')
             replaceAll(subkey, 'log          = log/sample_INDEX.$(ClusterId).log', 'log          = log/'+str(key)+'_'+str(i)+'.$(ClusterId).log')
@@ -162,8 +161,7 @@ def main():
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
             replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/analysis_mva/multileptonMVA.exe $JOBDIR/MakeJobsAndSend/JobCards_era/sample_condorDir/sample_index.job >> ./sample_index.runlog 2>&1',
-                       '$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
 
             # All job files, sub and sh files are ready
             # Now SHOOT !
@@ -176,11 +174,11 @@ def main():
     # data samples
     logging.info('Start making job cards for data ===>')
     for key, val in dataSamplesDict.items():
-        logging.info('... sample : {}'.format(key))
+        logging.info(' Sample : {}'.format(key))
         filePathList = val.get('filedirs')
         xsec         = -999.9
         evtWtSum     = 'bla'
-        filesPerJob        = int(val.get('filesPerJob'))
+        filesPerJob  = int(val.get('filesPerJob'))
         files = []
         for item in filePathList:
             logging.info('\t {}'.format(item))
@@ -265,7 +263,7 @@ def main():
             shutil.copy(tmplsubFile, subkey)
             shutil.copy(tmplshFile, shkey)
             # edit the sub.tmpl file
-            replaceAll(subkey, 'executable   = submit_sample_index.sh', 'executable   = '+shkey.split('/')[-1])
+            replaceAll(subkey, 'executable   = sample_index.sh', 'executable   = '+shkey.split('/')[-1])
             replaceAll(subkey, 'output       = output/sample_INDEX.$(ClusterId).$(ProcId).out', 'output       = output/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).out')
             replaceAll(subkey, 'error        = error/sample_INDEX.$(ClusterId).$(ProcId).err', 'error        = error/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).err')
             replaceAll(subkey, 'log          = log/sample_INDEX.$(ClusterId).log', 'log          = log/'+str(key)+'_'+str(i)+'.$(ClusterId).log')
@@ -274,8 +272,8 @@ def main():
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
             replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/analysis_mva/multileptonMVA.exe $JOBDIR/MakeJobsAndSend/JobCards_era/sample_condorDir/sample_index.job >> ./sample_index.runlog 2>&1',
-                       '$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+
             # All job files, sub and sh files are ready
             # Now SHOOT !
             if args.send :
@@ -289,7 +287,7 @@ def main():
     # signal samples
     logging.info('Start making job cards for Signal samples ===>')
     for key, val in signalSamplesDict.items():
-        logging.info('... sample : {}'.format(key))
+        logging.info(' Sample : {}'.format(key))
         filePathList = val.get('filedirs')
         xsec         = val.get('xsec')
         evtWtSum     = val.get('genEvtWtSum')
@@ -378,7 +376,7 @@ def main():
             shutil.copy(tmplsubFile, subkey)
             shutil.copy(tmplshFile, shkey)
             # edit the sub.tmpl file
-            replaceAll(subkey, 'executable   = submit_sample_index.sh', 'executable   = '+shkey.split('/')[-1])
+            replaceAll(subkey, 'executable   = sample_index.sh', 'executable   = '+shkey.split('/')[-1])
             replaceAll(subkey, 'output       = output/sample_INDEX.$(ClusterId).$(ProcId).out', 'output       = output/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).out')
             replaceAll(subkey, 'error        = error/sample_INDEX.$(ClusterId).$(ProcId).err', 'error        = error/'+str(key)+'_'+str(i)+'.$(ClusterId).$(ProcId).err')
             replaceAll(subkey, 'log          = log/sample_INDEX.$(ClusterId).log', 'log          = log/'+str(key)+'_'+str(i)+'.$(ClusterId).log')
@@ -387,8 +385,8 @@ def main():
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
             replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/analysis_mva/multileptonMVA.exe $JOBDIR/MakeJobsAndSend/JobCards_era/sample_condorDir/sample_index.job >> ./sample_index.runlog 2>&1',
-                       '$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+
             # All job files, sub and sh files are ready
             # Now SHOOT !
             if args.send :

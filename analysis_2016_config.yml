@@ -75,4 +75,3 @@ samplesDict:
       xsec: 0.001929282841388
       genEvtWtSum: 'genEventSumw'
       filesPerJob: 4
-

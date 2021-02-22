@@ -1,8 +1,7 @@
-executable   = submit_sample_index.sh
+executable   = sample_index.sh
 arguments    = $(ClusterId)$(ProcId)
 output       = output/sample_INDEX.$(ClusterId).$(ProcId).out
 error        = error/sample_INDEX.$(ClusterId).$(ProcId).err
 log          = log/sample_INDEX.$(ClusterId).log
-#+JobFlavour = "testmatch"
 +JobFlavour  = "tomorrow"
 queue
