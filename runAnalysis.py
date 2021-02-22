@@ -1,6 +1,6 @@
 #################################################
 ### A script to make the job submissions easy ###
-###                Gourab Saha                ###
+###               Gourab Saha                 ###
 #################################################
 import os
 import yaml
@@ -23,6 +23,7 @@ def main():
     parser = argparse.ArgumentParser(description='Make Jobs and Send')
     
     parser.add_argument('--configName', action='store', required=True, type=str, help='Name of the config')
+    parser.add_argument('--suffix', action='store', required=True, type=str, help='set jobdir name')
     parser.add_argument('--send', action='store_true', required=False, help='send jobs to HT-Condor')
     
     args = parser.parse_args()
@@ -50,6 +51,7 @@ def main():
     appdir            = configDict.get('appDir')
     jobdir            = configDict.get('jobDir')
     exeToRun          = configDict.get('exeToRun')
+    outdir            = configDict.get('outDir')
     samplesDict       = configDict.get('samplesDict')
     dataTypes         = [str(sample) for sample in samplesDict.keys()]
     mcSamplesDict     = samplesDict.get('MC')
@@ -59,6 +61,19 @@ def main():
     logging.info('MC_Samples : {}'.format([sample for sample in mcSamplesDict.keys()]))
     logging.info('Signal_Samples : {}'.format([sample for sample in signalSamplesDict.keys()]))
     logging.info('Data_Samples : {}'.format([sample for sample in dataSamplesDict.keys()]))
+
+    jobDir  = os.path.join(pwd,'JobCards_'+str(era)+'_'+args.suffix) 
+    if not os.path.isdir(jobDir):
+        os.mkdir(jobDir)
+        logging.info('{} : job directory created'.format(jobDir))
+    else:
+        logging.info('job directory exists .')
+    histDir = os.path.join(outdir,'JobOutput_'+str(era)+'_'+args.suffix)
+    if not os.path.isdir(histDir):
+        os.mkdir(histDir)
+        logging.info('{} : out directory created'.format(histDir))
+    else:
+        logging.info('out directory exists .')
     
     # mc samples
     logging.info('Start making job cards for MC Bkg samples ===>')
@@ -73,9 +88,6 @@ def main():
             logging.info('\t {}'.format(item))
             files += [os.path.join(item,rfile) for rfile in os.listdir(item) if '.root' in rfile]
         jobFile = str(key)+'.job'
-        jobDir  = 'JobCards_'+str(era) 
-        if not os.path.isdir(jobDir):
-            os.mkdir(jobDir)
         with open(os.path.join(jobDir,jobFile), 'w') as jfile:
             jfile.write('START\n'+'era '+str(era)+'\n'+'dataType mc\n')
             for item in commonInfoList:
@@ -85,8 +97,8 @@ def main():
                 jfile.write(item+'\n')
             jfile.write('########### xsec,lumi,hist ###########\n')
             jfile.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-            jfile.write('histFile '+str(key)+'_hist.root'+'\n')
-            jfile.write('logFile '+str(key)+'_dump.log'+'\n')
+            jfile.write('histFile '+histDir+'/'+str(key)+'_hist.root'+'\n')
+            jfile.write('logFile '+histDir+'/'+str(key)+'_dump.log'+'\n')
             jfile.write('############ Cut lists ###############'+'\n')
             for item in cutLists:
                 jfile.write(item+'\n')
@@ -135,8 +147,8 @@ def main():
                     tmpl.write(item+'\n')
                 tmpl.write('########### xsec,lumi,hist ###########\n')
                 tmpl.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-                tmpl.write('histFile '+str(key)+'_'+str(i)+'_hist.root'+'\n')
-                tmpl.write('logFile '+str(key)+'_'+str(i)+'_dump.log'+'\n')
+                tmpl.write('histFile '+histDir+'/'+str(key)+'_'+str(i)+'_hist.root'+'\n')
+                tmpl.write('logFile '+histDir+'/'+str(key)+'_'+str(i)+'_dump.log'+'\n')
                 tmpl.write('############ Cut lists ###############'+'\n')
                 for item in cutLists:
                     tmpl.write(item+'\n')
@@ -159,9 +171,11 @@ def main():
             # edit the sh.tmpl file
             replaceAll(shkey, 'JOBDIR=NameOfJobDirGivenInYaml', 'JOBDIR='+jobdir)
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
-            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            #replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd '+os.path.join(conDir,'runlogs'))
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            #replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1', exeToRun+' '+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
 
             # All job files, sub and sh files are ready
             # Now SHOOT !
@@ -184,9 +198,6 @@ def main():
             logging.info('\t {}'.format(item))
             files += [os.path.join(item,rfile) for rfile in os.listdir(item) if '.root' in rfile]
         jobFile = str(key)+'.job'
-        jobDir  = 'JobCards_'+str(era) 
-        if not os.path.isdir(jobDir):
-            os.mkdir(jobDir)
         with open(os.path.join(jobDir,jobFile), 'w') as jfile:
             jfile.write('START\n'+'era '+str(era)+'\n'+'dataType data\n')
             for item in commonInfoList:
@@ -196,8 +207,8 @@ def main():
                 jfile.write(item+'\n')
             jfile.write('########### xsec,lumi,hist ###########\n')
             jfile.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-            jfile.write('histFile '+str(key)+'_hist.root'+'\n')
-            jfile.write('logFile '+str(key)+'_dump.log'+'\n')
+            jfile.write('histFile '+histDir+'/'+str(key)+'_hist.root'+'\n')
+            jfile.write('logFile '+histDir+'/'+str(key)+'_dump.log'+'\n')
             jfile.write('############ Cut lists ###############'+'\n')
             for item in cutLists:
                 jfile.write(item+'\n')
@@ -246,8 +257,8 @@ def main():
                     tmpl.write(item+'\n')
                 tmpl.write('########### xsec,lumi,hist ###########\n')
                 tmpl.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-                tmpl.write('histFile '+str(key)+'_'+str(i)+'_hist.root'+'\n')
-                tmpl.write('logFile '+str(key)+'_'+str(i)+'_dump.log'+'\n')
+                tmpl.write('histFile '+histDir+'/'+str(key)+'_'+str(i)+'_hist.root'+'\n')
+                tmpl.write('logFile '+histDir+'/'+str(key)+'_'+str(i)+'_dump.log'+'\n')
                 tmpl.write('############ Cut lists ###############'+'\n')
                 for item in cutLists:
                     tmpl.write(item+'\n')
@@ -270,9 +281,11 @@ def main():
             # edit the sh.tmpl file
             replaceAll(shkey, 'JOBDIR=NameOfJobDirGivenInYaml', 'JOBDIR='+jobdir)
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
-            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            #replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd '+os.path.join(conDir,'runlogs'))
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            #replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1', exeToRun+' '+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
 
             # All job files, sub and sh files are ready
             # Now SHOOT !
@@ -297,9 +310,6 @@ def main():
             logging.info('\t {}'.format(item))
             files += [os.path.join(item,rfile) for rfile in os.listdir(item) if '.root' in rfile]
         jobFile = str(key)+'.job'
-        jobDir  = 'JobCards_'+str(era) 
-        if not os.path.isdir(jobDir):
-            os.mkdir(jobDir)
         with open(os.path.join(jobDir,jobFile), 'w') as jfile:
             jfile.write('START\n'+'era '+str(era)+'\n'+'dataType mc#signal\n')
             for item in commonInfoList:
@@ -309,8 +319,8 @@ def main():
                 jfile.write(item+'\n')
             jfile.write('########### xsec,lumi,hist ###########\n')
             jfile.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-            jfile.write('histFile '+str(key)+'_hist.root'+'\n')
-            jfile.write('logFile '+str(key)+'_dump.log'+'\n')
+            jfile.write('histFile '+histDir+'/'+str(key)+'_hist.root'+'\n')
+            jfile.write('logFile '+histDir+'/'+str(key)+'_dump.log'+'\n')
             jfile.write('############ Cut lists ###############'+'\n')
             for item in cutLists:
                 jfile.write(item+'\n')
@@ -359,8 +369,8 @@ def main():
                     tmpl.write(item+'\n')
                 tmpl.write('########### xsec,lumi,hist ###########\n')
                 tmpl.write('lumiWtList xsec='+str(xsec)+' intLumi='+str(lumi)+' nevents=100000'+'\n')
-                tmpl.write('histFile '+str(key)+'_'+str(i)+'_hist.root'+'\n')
-                tmpl.write('logFile '+str(key)+'_'+str(i)+'_dump.log'+'\n')
+                tmpl.write('histFile '+histDir+'/'+str(key)+'_'+str(i)+'_hist.root'+'\n')
+                tmpl.write('logFile '+histDir+'/'+str(key)+'_'+str(i)+'_dump.log'+'\n')
                 tmpl.write('############ Cut lists ###############'+'\n')
                 for item in cutLists:
                     tmpl.write(item+'\n')
@@ -383,9 +393,11 @@ def main():
             # edit the sh.tmpl file
             replaceAll(shkey, 'JOBDIR=NameOfJobDirGivenInYaml', 'JOBDIR='+jobdir)
             replaceAll(shkey, 'APPDIR=NameOfAppDirGivenInYaml', 'APPDIR='+appdir)
-            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            #replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd $JOBDIR/'+pwd.split('/')[-1]+'/'+conDir+'/'+'runlogs')
+            replaceAll(shkey, 'cd $JOBDIR/condor_runlog_dir', 'cd '+os.path.join(conDir,'runlogs'))
             replaceAll(shkey, 'uname -a > ./sample_INDEX.runlog 2>&1', 'uname -a > ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
-            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            #replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1','$JOBDIR/'+exeToRun+' $JOBDIR/'+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
+            replaceAll(shkey, '$JOBDIR/EXE $JOBDIR/PathToJobFile/sample_index.job >> ./sample_index.runlog 2>&1', exeToRun+' '+jobkey+' >> ./'+str(key)+'_'+str(i)+'.runlog 2>&1')
 
             # All job files, sub and sh files are ready
             # Now SHOOT !

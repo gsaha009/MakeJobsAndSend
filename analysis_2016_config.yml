@@ -3,8 +3,8 @@ era: 2016
 lumi: 35922 
 appDir: /afs/cern.ch/work/g/gsaha/public/CMSSW_9_4_9/src
 jobDir: /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct
-# Do not write the full path. Just keep the name as it is inside jobDir
-exeToRun: analysis_mva/multileptonMVA.exe
+exeToRun: /afs/cern.ch/work/g/gsaha/public/NanoAnalysisObjStruct/analysis_mva/multileptonMVA.exe
+outDir: /eos/user/g/gsaha3/Exotic
 commonInfo:
   - readGenInfo 0
   - dumpGenInfo 0
